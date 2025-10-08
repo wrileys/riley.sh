@@ -1,0 +1,15 @@
+baseURL = 'https://riley.sh/'
+languageCode = 'en-us'
+title = 'Homepage for Riley Shuping'
+theme   = "simple-tex"
+[params]
+mainSections = ["posts"]
+[menu]
+  [[menu.main]]
+    name = "Posts"
+    url  = "/posts/"
+    weight = 1
+  [[menu.main]]
+    name = "About"
+    url  = "/about/"
+    weight = 2

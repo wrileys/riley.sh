@@ -1,0 +1,20 @@
+{{ define "main" }}
+  <section class="stack">
+    <h1>{{ .Title | default "Posts" }}</h1>
+    {{ $pages := where .Pages "Type" "posts" }}
+    {{ if not (len $pages) }}
+      <p>No posts yet.</p>
+    {{ else }}
+      {{ $p := .Paginate $pages.ByDate.Reverse }}
+      <ul class="posts">
+        {{ range $p.Pages }}
+          <li>
+            <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+            · <time datetime="{{ .Date }}">{{ .Date.Format "2006-01-02" }}</time>
+          </li>
+        {{ end }}
+      </ul>
+      {{ template "_internal/pagination.html" . }}
+    {{ end }}
+  </section>
+{{ end }}

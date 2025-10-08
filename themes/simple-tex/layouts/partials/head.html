@@ -1,0 +1,26 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>{{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }} · {{ .Site.Title }}{{ end }}</title>
+<script>
+(function(){
+  const key = "theme"; // "light" | "dark"
+  const root = document.documentElement;
+
+  // 1) initial: if user saved a choice, use it; else leave empty and CSS @media applies
+  const saved = localStorage.getItem(key);
+  if (saved === "light" || saved === "dark") {
+    root.setAttribute("data-theme", saved);
+  }
+
+  // 2) make a global helper for the header toggle to call
+  window.__setTheme = function(mode){
+    if (mode !== "light" && mode !== "dark") return;
+    root.setAttribute("data-theme", mode);
+    localStorage.setItem(key, mode);
+    // let listeners (e.g., Mermaid) re-render
+    window.dispatchEvent(new CustomEvent("themechange", { detail: { theme: mode }}));
+  };
+})();
+</script>
+{{ $css := resources.Get "css/main.scss" | toCSS | minify | fingerprint }}
+<link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">

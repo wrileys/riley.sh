@@ -1,0 +1,16 @@
+<!-- analytics.html: safe no-op when not configured -->
+{{/* Only emit analytics in production and if a key/domain is set */}}
+{{ if eq hugo.Environment "production" }}
+  {{ with .Site.Params.analytics.plausibleDomain }}
+    <script defer data-domain="{{ . }}" src="https://plausible.io/js/script.js"></script>
+  {{ end }}
+  {{ with .Site.Params.analytics.ga4 }}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ . }}"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '{{ . }}');
+    </script>
+  {{ end }}
+{{ end }}

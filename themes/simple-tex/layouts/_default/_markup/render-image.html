@@ -1,0 +1,14 @@
+{{/* If the image is a page resource, build responsive sizes; otherwise fall back to raw URL. */}}
+{{ with .Page.Resources.GetMatch .Destination }}
+  {{ $s := .Fit "600x" }}
+  {{ $m := .Fit "1000x" }}
+  {{ $l := .Fit "1600x" }}
+  <img
+    alt="{{ $.Text }}"
+    src="{{ $m.RelPermalink }}"
+    srcset="{{ $s.RelPermalink }} 600w, {{ $m.RelPermalink }} 1000w, {{ $l.RelPermalink }} 1600w"
+    sizes="(min-width: 900px) 800px, 100vw"
+    loading="lazy" decoding="async">
+{{ else }}
+  <img alt="{{ $.Text }}" src="{{ .Destination | safeURL }}" loading="lazy" decoding="async">
+{{ end }}
