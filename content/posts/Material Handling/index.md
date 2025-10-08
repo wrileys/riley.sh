@@ -1,6 +1,6 @@
 +++
 date = '2025-08-20T17:28:03-05:00'
-draft = false
+draft = true
 title = 'Virtual Pick-to-Light Rack: From Scratch to Production'
 +++
 
