@@ -2,7 +2,7 @@
 date = '2025-10-07T14:55:03-05:00'
 draft = false
 title = 'Hello + What You’ll Find Here'
-tags: ["manufacturing", "MES", "MQTT", "computer-vision", "containers", "opnsense"]
+tags = ["manufacturing", "MES", "MQTT", "computer-vision", "containers", "opnsense"]
 +++
 
 I help create manufacturing software that connects machines, people, and data to keep production flowing with minimal drama. This site will be a collection of things that worked, dead ends I wish I'd skipped, and anything personally relevant. Note that this is a static site. Posts are plain markdown with code, logs, and step-by-step procedures. I will try to incorporate visuals and interactive elements as possible.
