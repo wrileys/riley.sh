@@ -3,11 +3,6 @@
 /resources/_gen/
 .hugo_build.lock
 
-# Build artifacts
-node_modules/
-.pnpm-store/
-dist/
-
 # Local
 .DS_Store
 Thumbs.db
