@@ -13,3 +13,8 @@ mainSections = ["posts"]
     name = "About"
     url  = "/about/"
     weight = 2
+[markup]
+  [markup.highlight]
+    noClasses = false    # critical: use CSS classes (not inline styles)
+    guessSyntax = true
+    lineNos = false
