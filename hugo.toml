@@ -1,6 +1,6 @@
 baseURL = 'https://riley.sh/'
 languageCode = 'en-us'
-title = 'Homepage for Riley Shuping'
+title = "Riley Shuping's Machinations"
 theme   = "simple-tex"
 [params]
 mainSections = ["posts"]
@@ -15,6 +15,6 @@ mainSections = ["posts"]
     weight = 2
 [markup]
   [markup.highlight]
-    noClasses = false    # critical: use CSS classes (not inline styles)
+    noClasses = false
     guessSyntax = true
     lineNos = false

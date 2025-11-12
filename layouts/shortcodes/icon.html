@@ -1,0 +1,7 @@
+{{- $name := .Get 0 -}}
+{{- $path := printf "icons/%s.svg" $name -}}
+{{- with resources.Get $path -}}
+  {{ .Content | safeHTML }}
+{{- else -}}
+  {{- errorf "icon %q not found at %q (called from %s)" $name $path .Position -}}
+{{- end -}}

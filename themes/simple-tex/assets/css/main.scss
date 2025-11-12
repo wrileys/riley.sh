@@ -4,6 +4,14 @@
   --fg: #111;
   --muted: #555;
 
+  /* icons default to body text color */
+  --icon-color: var(--fg);
+
+  /* global link palette (light) */
+  --link: #1d4ed8;
+  --link-hover: #1e40af;
+  --link-visited: #1d4ed8; /* avoid browser purple */
+
   /* Smooth growth from laptops up, capped for ultrawide */
   --maxw: clamp(78ch, 88vw, 150ch);
 }
@@ -13,11 +21,28 @@
 
 /* Respect system preference for no user choice */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) { --bg:#0b0b0b; --fg:#eee; --muted:#aaa; }
+  :root:not([data-theme]) {
+    --bg:#0b0b0b; --fg:#eee; --muted:#aaa;
+
+    --icon-color: var(--fg);
+
+    /* global link palette (dark) */
+    --link: #93c5fd;
+    --link-hover: #bfdbfe;
+    --link-visited: #93c5fd;
+  }
 }
 
-/* Explicit user choice */
-:root[data-theme="dark"] { --bg:#0b0b0b; --fg:#eee; --muted:#aaa; }
+/* Explicit user choice (dark) */
+:root[data-theme="dark"] {
+  --bg:#0b0b0b; --fg:#eee; --muted:#aaa;
+
+  --icon-color: var(--fg);
+
+  --link: #93c5fd;
+  --link-hover: #bfdbfe;
+  --link-visited: #93c5fd;
+}
 
 /* Base layout */
 *{ box-sizing:border-box }
@@ -62,7 +87,7 @@ body{
 }
 
 /* Code block bg */
-:root { --code-bg: #f6f8fa; }                      /* light default */
+:root { --code-bg: #e5e5e5; }                      /* light default */
 :root[data-theme="dark"] { --code-bg: #0d1117; }   /* explicit dark */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) { --code-bg: #0d1117; }
@@ -75,3 +100,30 @@ body{
   :root:not([data-theme]) { @import "chroma-dark.css"; }
 }
 :root[data-theme="dark"] { @import "chroma-dark.css"; }
+
+/* Global link color */
+a { color: var(--link); }
+a:hover { color: var(--link-hover); text-decoration-thickness: 2px; }
+a:visited { color: var(--link-visited); }
+
+/* Social row: override to neutral (match body fg) */
+.social {
+  --link: var(--fg);
+  --link-hover: var(--fg);
+  --link-visited: var(--fg);
+  --icon-color: var(--fg);
+  display: inline-flex;
+  gap: .75rem;
+  align-items: center;
+}
+.social .sep { color: var(--muted); }
+
+/* Icons */
+.icon { color: var(--icon-color); width: 1em; height: 1em; display:inline-block; line-height:1; }
+.icon svg {
+  width: 100%;
+  height: 100%;
+  vertical-align: -0.125em;
+  fill: currentColor; /* your SVGs should have no inline fill */
+}
+

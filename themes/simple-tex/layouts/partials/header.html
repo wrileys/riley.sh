@@ -1,4 +1,5 @@
 <header class="site-header">
+  <img class="cat-cutout" src="{{ "images/cat-cutout.png" | relURL }}" alt="">
   <nav class="nav container">
     <a class="brand" href="{{ "/" | relURL }}">{{ .Site.Title }}</a>
     <div class="nav-right">
@@ -37,4 +38,64 @@
   background:transparent; border:1px solid var(--muted); color:var(--fg);
   border-radius:.5rem; padding:.25rem .5rem; cursor:pointer;
 }
+
+/* --- knobs --- */
+:root{
+  --catW: 100px;                 
+}
+@media (max-width: 720px){
+  :root{ --catW: 40px; }        /* smaller on phones */
+}
+
+/* Titlebar container */
+.site-header{
+  position: relative;
+  /* reserve vertical space above the nav for Phineas to sit in */
+  padding-top: calc(var(--catW) * 0.);  
+  z-index: 5;
+  background: var(--bg);
+  border-bottom: 1px solid color-mix(in oklab, var(--fg) 12%, transparent);
+}
+
+/* Keep nav content above if there’s overlap */
+.site-header .nav{ position: relative; z-index: 2; }
+
+/* The cat itself: anchored to the header’s top-left */
+.site-header .cat-cutout{
+  position: absolute;
+  left: 0;
+  bottom: 0;                        /* sits at the top edge of the header */
+  width: var(--catW);
+  height: auto;
+  transform: rotate(0deg);     /* adjust angle as you like */
+  display: block;
+  pointer-events: none;
+  z-index: 1;
+  filter: drop-shadow(0 8px 10px rgba(0,0,0,.18));
+}
+
+/* default (light/system-light): hide phineas + maintain padding */
+.site-header .cat-cutout { display: none !important; }
+.site-header { padding-top: var(--catW) !important; }
+
+/* explicit dark via toggle: <html data-theme="dark"> */
+html[data-theme="dark"] .site-header { 
+  padding-top: calc(var(--catW, 180px) * 0.55) !important; 
+}
+html[data-theme="dark"] .site-header .cat-cutout { 
+  display: block !important; 
+}
+
+/* system dark when no explicit choice saved */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) .site-header { 
+    padding-top: calc(var(--catW, 180px) * 0.55) !important; 
+  }
+  html:not([data-theme]) .site-header .cat-cutout { 
+    display: block !important; 
+  }
+}
+
+/* TODO: Fix padding change on mobile for Phineas jump scare */
+
 </style>

@@ -14,3 +14,7 @@ I enjoy a bit of photography, live music, keeping up to date on the latest techn
 I'm extremely curious about the world and love to learn about how things work. My favorite author is Vaclav Smil simply because of his incredible blend rigor and scope. 
 
 My guiding principle is simple: I aim to help and disdain ladder pulling. If I figure something out, I’ll write it up so the next person’s job is easier.
+
+[{{< icon "github" >}} GitHub](https://github.com/wrileys) ·
+[{{< icon "linkedin" >}} LinkedIn](https://www.linkedin.com/in/your-handle/) ·
+[{{< icon "rss" >}} RSS](/index.xml)
