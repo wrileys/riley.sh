@@ -1,6 +1,6 @@
 baseURL = 'https://riley.sh/'
 languageCode = 'en-us'
-title = "Riley Shuping's Machinations"
+title = "Riley Shuping"
 theme   = "simple-tex"
 [params]
 mainSections = ["posts"]

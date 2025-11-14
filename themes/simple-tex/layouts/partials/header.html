@@ -1,3 +1,8 @@
+<div class="topbar" role="complementary" aria-label="Utility bar">
+  <div class="container topbar-inner">
+  </div>
+</div>
+
 <header class="site-header">
   <img class="cat-cutout" src="{{ "images/cat-cutout.png" | relURL }}" alt="">
   <nav class="nav container">
@@ -51,7 +56,7 @@
 .site-header{
   position: relative;
   /* reserve vertical space above the nav for Phineas to sit in */
-  padding-top: calc(var(--catW) * 0.);  
+  padding-top: calc(var(--catW) * 0.55);  
   z-index: 5;
   background: var(--bg);
   border-bottom: 1px solid color-mix(in oklab, var(--fg) 12%, transparent);
@@ -64,10 +69,10 @@
 .site-header .cat-cutout{
   position: absolute;
   left: 0;
-  bottom: 0;                        /* sits at the top edge of the header */
+  bottom: 0;                        
   width: var(--catW);
   height: auto;
-  transform: rotate(0deg);     /* adjust angle as you like */
+  transform: rotate(0deg);     
   display: block;
   pointer-events: none;
   z-index: 1;
@@ -76,9 +81,9 @@
 
 /* default (light/system-light): hide phineas + maintain padding */
 .site-header .cat-cutout { display: none !important; }
-.site-header { padding-top: var(--catW) !important; }
+.site-header { padding-top: calc(var(--catW) * 0.55) !important; }
 
-/* explicit dark via toggle: <html data-theme="dark"> */
+
 html[data-theme="dark"] .site-header { 
   padding-top: calc(var(--catW, 180px) * 0.55) !important; 
 }

@@ -6,13 +6,11 @@
   const key = "theme"; // "light" | "dark"
   const root = document.documentElement;
 
-  // 1) initial: if user saved a choice, use it; else leave empty and CSS @media applies
   const saved = localStorage.getItem(key);
   if (saved === "light" || saved === "dark") {
     root.setAttribute("data-theme", saved);
   }
 
-  // 2) make a global helper for the header toggle to call
   window.__setTheme = function(mode){
     if (mode !== "light" && mode !== "dark") return;
     root.setAttribute("data-theme", mode);
