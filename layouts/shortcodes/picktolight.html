@@ -1,0 +1,674 @@
+<style>
+  /* Scope everything inside .ptl-demo to avoid clobbering the theme */
+  .ptl-demo {
+    --ptl-bg: #0b0c0f;
+    --ptl-text: #e8eaed;
+    --ptl-muted: #9aa0a6;
+    --ptl-card: #151922;
+    --ptl-stroke: #2a2f3a;
+    --ptl-accent: #8ab4f8;
+
+    background: var(--ptl-bg);
+    color: var(--ptl-text);
+    padding: 24px;
+    border-radius: 12px;
+  }
+
+  .ptl-demo * {
+    box-sizing: border-box;
+  }
+
+  .ptl-demo h1 {
+    margin: 0 0 12px;
+    font-size: 20px;
+  }
+
+  .ptl-demo .wrap {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  @media (max-width: 768px) {
+    .ptl-demo {
+      padding: 16px; /* optional: a bit tighter on phones */
+    }
+
+    .ptl-demo .wrap {
+      display: block;      /* <-- ignore grid on small screens */
+    }
+
+    /* small margin between the two cards when stacked */
+    .ptl-demo .card + .card {
+      margin-top: 12px;
+    }
+  }
+
+
+
+  .ptl-demo .card {
+    background: var(--ptl-card);
+    border: 1px solid var(--ptl-stroke);
+    border-radius: 12px;
+    padding: 14px;
+  }
+
+  .ptl-demo .row {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 8px;
+    align-items: center;
+    margin: 6px 0;
+  }
+
+  .ptl-demo label {
+    color: var(--ptl-muted);
+  }
+
+  .ptl-demo input[type="text"],
+  .ptl-demo input[type="number"],
+  .ptl-demo textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--ptl-stroke);
+    background: #0f1218;
+    color: var(--ptl-text);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 12px;
+  }
+
+  .ptl-demo textarea {
+    min-height: 100px;
+  }
+
+  .ptl-demo button {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--ptl-stroke);
+    background: #0f1218;
+    color: var(--ptl-text);
+    cursor: pointer;
+  }
+
+  .ptl-demo button:hover {
+    border-color: var(--ptl-accent);
+  }
+
+  .ptl-demo .log {
+    max-height: 240px;
+    overflow: auto;
+    font: 12px/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: #0f1115;
+    border: 1px solid #222;
+    border-radius: 8px;
+    padding: 8px;
+  }
+
+  /* Rack visuals */
+  .ptl-demo #rack {
+    display: grid;
+    gap: 12px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .ptl-demo .shelf {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+  }
+
+  .ptl-demo .bin {
+    display: inline-block;
+    cursor: pointer;
+  }
+
+  .ptl-demo .bin.selected {
+    outline: 3px solid rgba(138,180,248,0.65);
+    outline-offset: 3px;
+  }
+
+  .ptl-demo .gap {
+    height: 1px;
+  }
+
+  .ptl-demo svg {
+    display: block;
+  }
+</style>
+
+
+<div class="ptl-demo">
+  <h1>Pick-to-Light — Original Code + Shim</h1>
+  <div class="wrap">
+    <div class="card">
+      <div class="row"><label>Bin color</label><input id="binColor" type="text" value="#62708a"></div>
+      <div class="row"><label>Highlight color 1</label><input id="h1Color" type="text" value="#ffd54f"></div>
+      <div class="row"><label>Highlight color 2</label><input id="h2Color" type="text" value="#ff8a65"></div>
+      <div class="row"><label>Update interval (ms)</label><input id="interval" type="number" value="1500" min="50" step="50"></div>
+      <div class="row"><label>Highlight list 1</label><input id="h1" type="text" placeholder="e.g. 1,3,5"></div>
+      <div class="row"><label>Highlight list 2</label><input id="h2" type="text" placeholder="e.g. 2,4"></div>
+      <div class="row"><label>Rack Config JSON</label><textarea id="rackJson"></textarea></div>
+      <div class="row"><label>Bin Dimensions JSON</label><textarea id="dimsJson"></textarea></div>
+      <div class="row"><div></div><button id="rebuild">Rebuild rack</button></div>
+      <div class="row"><label>Selected Bin</label><input id="selectedBin" type="text" readonly></div>
+      <div class="row"><label>Events</label><div></div></div>
+      <div class="log" id="log"></div>
+    </div>
+
+    <div class="card">
+      <div id="rack"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= -->
+<!-- Tulip-like shim (defines APIs) -->
+<!-- ============================= -->
+
+<script>
+  (function(){
+    const STORAGE_KEY = 'ptl_widget_store_v2';
+
+    const DEFAULTS = {
+      'Bin color': '#62708a',
+      'Highlight color 1': '#ffd54f',
+      'Highlight color 2': '#ff8a65',
+      'Highlight Update Interval': 1500,
+      'Highlight list 1': [],
+      'Highlight list 2': [],
+      'Select': null,
+      'Rack Config Text': JSON.stringify([
+        { "Shelf": 1, "Type": "Bin", "Size": "A",  "Bin Number": 1 },
+        { "Shelf": 1, "Type": "Gap", "Size": 30 },
+        { "Shelf": 1, "Type": "Bin", "Size": "B",  "Bin Number": 2 },
+        { "Shelf": 1, "Type": "Bin", "Size": "ST", "Bin Number": 3 },
+        { "Shelf": 2, "Type": "Bin", "Size": "C",  "Bin Number": 4 },
+        { "Shelf": 2, "Type": "Gap", "Size": 20 },
+        { "Shelf": 2, "Type": "Bin", "Size": "A",  "Bin Number": 5 },
+        { "Shelf": 2, "Type": "Bin", "Size": "B",  "Bin Number": 6 }
+      ], null, 2),
+      'Bin Dimensions': [
+        { "Bin ID": "A",  "Bin Total Width (mm)": 106, "Bin Total Height (mm)": 77, "Bin Horizontal Lip (mm)": 8,    "Bin Vertical Lip (mm)": 20 },
+        { "Bin ID": "B",  "Bin Total Width (mm)": 140, "Bin Total Height (mm)": 77, "Bin Horizontal Lip (mm)": 8,    "Bin Vertical Lip (mm)": 20 },
+        { "Bin ID": "C",  "Bin Total Width (mm)": 200, "Bin Total Height (mm)": 77, "Bin Horizontal Lip (mm)": 8,    "Bin Vertical Lip (mm)": 20 },
+        { "Bin ID": "D",  "Bin Total Width (mm)": 300, "Bin Total Height (mm)": 77, "Bin Horizontal Lip (mm)": 8,    "Bin Vertical Lip (mm)": 20 },
+        { "Bin ID": "ST", "Bin Total Width (mm)": 212, "Bin Total Height (mm)": 20, "Bin Horizontal Lip (mm)": 0.01,    "Bin Vertical Lip (mm)": 20 }
+      ]
+    };
+
+    // Local store + subscribers
+    const store = new Map();
+    const subs = new Map(); // key -> Set(callback)
+
+    // Helpers
+    const $ = (id) => document.getElementById(id);
+    const setIf = (id, v) => { const el = $(id); if (el) el.value = v; };
+
+    function load(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const obj = JSON.parse(raw);
+          for (const [k,v] of Object.entries(obj)) store.set(k, v);
+        }
+      }catch{}
+      for (const [k,v] of Object.entries(DEFAULTS)) if (!store.has(k)) store.set(k, v);
+    }
+    function persist(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(Object.fromEntries(store))); }catch{} }
+
+    function parseCsvInts(s){
+      return String(s||'').split(',').map(x=>x.trim()).filter(Boolean).map(Number).filter(Number.isFinite);
+    }
+
+    function normalizeBinDims(input){
+      // Accept either an array or an object with { "Bin Dimensions": [...] }
+      if (Array.isArray(input)) return input;
+      if (input && Array.isArray(input['Bin Dimensions'])) return input['Bin Dimensions'];
+      return DEFAULTS['Bin Dimensions'];
+    }
+
+    // Expose Tulip-like API
+    window.getValue = function(key, cb){
+      const val = store.get(key);
+      if (typeof cb === 'function') {
+        if (!subs.has(key)) subs.set(key, new Set());
+        subs.get(key).add(cb);
+        try { cb(val); } catch(e){ console.error(e); }
+      }
+      return val;
+    };
+
+    window.setValue = function(key, value){
+      if (key === 'Highlight list 1' || key === 'Highlight list 2') {
+        if (typeof value === 'string') value = parseCsvInts(value);
+      }
+      if (key === 'Bin Dimensions') {
+        value = normalizeBinDims(value);
+      }
+      store.set(key, value);
+      persist();
+      if (subs.has(key)) for (const cb of subs.get(key)) { try { cb(value); } catch(e){ console.error(e); } }
+      mirrorControls(key, value);
+    };
+
+    window.fireEvent = function(name, payload){
+      const time = new Date().toLocaleTimeString();
+      const line = `[${time}] ${name}${payload!==undefined ? ' ' + JSON.stringify(payload) : ''}`;
+      console.log('fireEvent', name, payload);
+      const log = $('log');
+      if (log) { const div = document.createElement('div'); div.textContent = line; log.prepend(div); }
+    };
+
+    // Controls wiring
+    function setupControls(){
+      setIf('binColor', getValue('Bin color'));
+      setIf('h1Color',  getValue('Highlight color 1'));
+      setIf('h2Color',  getValue('Highlight color 2'));
+      setIf('interval', getValue('Highlight Update Interval'));
+      setIf('h1',       (getValue('Highlight list 1')||[]).join(','));
+      setIf('h2',       (getValue('Highlight list 2')||[]).join(','));
+      setIf('rackJson', getValue('Rack Config Text'));
+      setIf('dimsJson', JSON.stringify(getValue('Bin Dimensions'), null, 2));
+
+      $('binColor')?.addEventListener('change', e => setValue('Bin color', e.target.value));
+      $('h1Color')?.addEventListener('change',  e => setValue('Highlight color 1', e.target.value));
+      $('h2Color')?.addEventListener('change',  e => setValue('Highlight color 2', e.target.value));
+      $('interval')?.addEventListener('change', e => setValue('Highlight Update Interval', +e.target.value || 1500));
+      $('h1')?.addEventListener('change',       e => setValue('Highlight list 1', e.target.value));
+      $('h2')?.addEventListener('change',       e => setValue('Highlight list 2', e.target.value));
+
+      $('rebuild')?.addEventListener('click', () => {
+        const rj = $('rackJson')?.value ?? '';
+        const dj = $('dimsJson')?.value ?? '';
+        try { JSON.parse(rj); } catch(e){ return alert('Rack Config JSON is invalid'); }
+        let dims;
+        try { dims = JSON.parse(dj); } catch(e){ return alert('Bin Dimensions JSON is invalid'); }
+        setValue('Rack Config Text', rj);
+        setValue('Bin Dimensions', dims);
+        tryBuildRack && tryBuildRack();
+      });
+
+      getValue('Select', (val) => setIf('selectedBin', val==null? '' : String(val)));
+    }
+
+    function mirrorControls(key, value){
+      switch(key){
+        case 'Bin color':                 setIf('binColor', value); break;
+        case 'Highlight color 1':         setIf('h1Color',  value); break;
+        case 'Highlight color 2':         setIf('h2Color',  value); break;
+        case 'Highlight Update Interval': setIf('interval', value); break;
+        case 'Highlight list 1':          setIf('h1', (value||[]).join(',')); break;
+        case 'Highlight list 2':          setIf('h2', (value||[]).join(',')); break;
+        case 'Rack Config Text':          setIf('rackJson', value); break;
+        case 'Bin Dimensions':            setIf('dimsJson', JSON.stringify(value, null, 2)); break;
+      }
+    }
+
+    load();
+    setupControls();
+    window.dispatchEvent(new Event('ptl-shim-ready'));
+  })();
+  </script>
+
+<script>
+  let highlightList_1;
+  let highlightList_2;
+  const SHELF_GAP_PX = 8; // must match .ptl-demo .shelf { gap: 8px; }
+  let prevHighlightList_1 = [];
+  let prevHighlightList_2 = [];
+  const binColor = getValue("Bin color");
+
+  let shelfSchema; 
+
+  // start with scaling factor of 1, changes on resize
+  let horizontalScale = 1;
+  let verticalScale = 1;
+
+
+  function getRackInnerWidth() {
+    const rack = document.querySelector("#rack");
+    if (!rack) return 0;
+
+    const card = rack.closest(".card") || rack;
+    const cs = getComputedStyle(card);
+
+    const paddingLeft  = parseFloat(cs.paddingLeft)  || 0;
+    const paddingRight = parseFloat(cs.paddingRight) || 0;
+
+    // clientWidth already excludes borders, so just subtract padding
+    return card.clientWidth - paddingLeft - paddingRight;
+  }
+
+  function computeScale() {
+    const rackWidthPx = getRackInnerWidth();
+    if (!rackWidthPx) return 1;
+
+    if (!Array.isArray(shelfSchema) || !shelfSchema.length) return 1;
+
+    const binDimensions = getValue("Bin Dimensions");
+    if (!Array.isArray(binDimensions)) return 1;
+
+    let scale = 1; // start with no scaling, only shrink
+
+    for (const shelf of shelfSchema) {
+        if (!Array.isArray(shelf) || !shelf.length) continue;
+
+        let mmSum = 0;
+        let itemCount = 0;
+
+        for (const item of shelf) {
+        itemCount++;
+
+        if (item.type === "bin") {
+            const dims = binDimensions.find(
+            (b) => b["Bin ID"] === item.size
+            );
+            mmSum += (dims?.["Bin Total Width (mm)"] ?? 106);
+        } else if (item.type === "gap") {
+            mmSum += Number(item.size) || 0;
+        }
+        }
+
+        if (!mmSum) continue;
+
+        const gapCount    = Math.max(0, itemCount - 1);
+        const totalGapPx  = gapCount * SHELF_GAP_PX;
+        const availablePx = rackWidthPx - totalGapPx;
+
+        if (availablePx <= 0) continue;
+
+        const shelfScale = availablePx / mmSum; // px per “mm unit”
+        if (shelfScale < scale) {
+        scale = shelfScale;
+        }
+    }
+
+    if (!isFinite(scale) || scale <= 0) return 1;
+
+    // Never grow beyond 1, and shave 1% to avoid rounding overflow
+    return Math.min(scale, 1) * 0.99;
+  }
+
+
+  function generatePath(binType, { horizontalScale, verticalScale }) {
+    let binDimensions = getValue("Bin Dimensions").find(
+      (b) => b["Bin ID"] === binType
+    );
+
+    if (!binDimensions) {
+      console.error(`Bin dimensions not found for bin type: ${binType}`);
+      return ""; 
+    }
+
+    let totalWidth =
+      (binDimensions["Bin Total Width (mm)"] || 106) * horizontalScale;
+    let totalHeight =
+      (binDimensions["Bin Total Height (mm)"] || 77) * verticalScale;
+    let horizontalLip =
+      (binDimensions["Bin Horizontal Lip (mm)"] || 8) * horizontalScale;
+    let verticalLip =
+      (binDimensions["Bin Vertical Lip (mm)"] || 24) * verticalScale;
+
+    return `M ${horizontalLip} 0 H ${totalWidth - horizontalLip} V ${
+      totalHeight - verticalLip
+    } H ${horizontalLip} Z H 0 V ${
+      totalHeight - verticalLip
+    } L ${horizontalLip} ${totalHeight} H ${
+      totalWidth - horizontalLip
+    } L ${totalWidth} ${totalHeight - verticalLip} V 0 Z`;
+  }
+
+  function buildRack() {
+    let rack = document.querySelector("#rack");
+    let totalBinsCreated = 0;
+
+    if (rack === null) {
+      console.error("Element with ID 'rack' not found.");
+      return;
+    }
+
+    horizontalScale = computeScale();
+    verticalScale = horizontalScale;
+
+    // Clear existing content in the rack
+    rack.innerHTML = "";
+
+
+    shelfSchema.forEach((shelf) => {
+      let shelfDiv = document.createElement("div");
+      shelfDiv.classList.add("shelf");
+      rack.appendChild(shelfDiv);
+
+      shelf.forEach((item) => {
+        if (item.type === "bin") {
+          totalBinsCreated++;
+          let binDiv = createBinElement(totalBinsCreated, item.size); 
+          shelfDiv.appendChild(binDiv);
+        } else if (item.type === "gap") {
+          let gapDiv = createGapElement(item.size);
+          shelfDiv.appendChild(gapDiv);
+        }
+      });
+    });
+  }
+
+  function selectBin(binID) {
+    const selectedBin = document.getElementById(binID);
+    const previouslySelectedBin = document.querySelector(".bin.selected");
+
+    // If the clicked bin is already selected, unselect it
+    if (selectedBin.classList.contains("selected")) {
+      selectedBin.classList.remove("selected");
+      fireEvent("Bin Selected", 0);
+      setValue("Select", null);
+    } else {
+      if (previouslySelectedBin) {
+        previouslySelectedBin.classList.remove("selected");
+      }
+
+      selectedBin.classList.add("selected");
+      fireEvent("Bin Selected", parseInt(selectedBin.getAttribute("binNumber")));
+      setValue("Select", parseInt(selectedBin.getAttribute("binNumber")));
+    }
+  }
+
+  function createGapElement(sizeInMillimeters) {
+    const mmToPx = 1;
+    let sizeInPixels = parseInt(sizeInMillimeters) * mmToPx;
+
+    sizeInPixels *= horizontalScale;
+
+    let gapDiv = document.createElement("div");
+    gapDiv.classList.add("gap");
+
+    // Set width in pixels (actually mm)
+    gapDiv.style.width = `${sizeInPixels}px`;
+
+    return gapDiv;
+  }
+
+  let toggleHighlight = true; // Global toggle variable
+
+  let toggleDelay = getValue("Highlight Update Interval") || 3000;
+  let lastToggleTime = Date.now();
+
+  let lastBinColors = {};
+
+  let lastHighlightState = {};
+
+  function updateHighlights() {
+    let bins = document.querySelectorAll(".bin");
+    let currentHighlightList_1 = getValue("Highlight list 1") || [];
+    let currentHighlightList_2 = getValue("Highlight list 2") || [];
+
+    const highlightColor1 = getValue("Highlight color 1");
+    const highlightColor2 = getValue("Highlight color 2");
+
+    bins.forEach((binDiv) => {
+      let binNumber = parseInt(binDiv.getAttribute("binNumber"));
+      let binSvgPath = binDiv.querySelector("svg path");
+
+      let isHighlighted1 = currentHighlightList_1.includes(binNumber);
+      let isHighlighted2 = currentHighlightList_2.includes(binNumber);
+
+      let newColor = determineColor(
+        isHighlighted1,
+        isHighlighted2,
+        binColor,
+        highlightColor1,
+        highlightColor2
+      );
+
+      let highlightChanged =
+        lastHighlightState[binNumber] !== (isHighlighted1 || isHighlighted2);
+      let wasHighlighted = lastHighlightState[binNumber];
+
+      if (lastBinColors[binNumber] !== newColor) {
+        binSvgPath.setAttribute("fill", newColor);
+
+        let eventDescription = "";
+
+        if (wasHighlighted && newColor === binColor) {
+          eventDescription = "highlight removed";
+        }
+        else if (wasHighlighted && lastBinColors[binNumber] !== newColor) {
+          eventDescription = "highlight toggled";
+        }
+        else if (!wasHighlighted && newColor !== binColor) {
+          eventDescription = "highlighted";
+        }
+
+        if (eventDescription) {
+          fireEvent("Bin Color Change", {
+            "Bin Number": binNumber,
+            newColor: newColor,
+            "Event Description": eventDescription,
+          });
+        }
+
+        lastBinColors[binNumber] = newColor;
+        lastHighlightState[binNumber] = isHighlighted1 || isHighlighted2;
+      }
+    });
+
+    prevHighlightList_1 = currentHighlightList_1.slice();
+    prevHighlightList_2 = currentHighlightList_2.slice();
+
+    if (Date.now() - lastToggleTime > toggleDelay) {
+      toggleHighlight = !toggleHighlight;
+      lastToggleTime = Date.now();
+    }
+  }
+
+  updateHighlights();
+  setInterval(updateHighlights, getValue("Highlight Update Interval") || 1500);
+
+  function createBinElement(binId, binType) {
+    let binDiv = document.createElement("div");
+    binDiv.id = "bin" + binId;
+    binDiv.setAttribute("binNumber", binId);
+    binDiv.classList.add("bin");
+
+    lastBinColors[binId] = binColor;
+
+    let path = generatePath(binType, { horizontalScale, verticalScale });
+    let binDimensions = getValue("Bin Dimensions").find(
+      (b) => b["Bin ID"] === binType
+    );
+    let width =
+      (binDimensions?.["Bin Total Width (mm)"] || 106) * horizontalScale;
+    let height = (binDimensions?.["Bin Total Height (mm)"] || 77) * verticalScale;
+
+    binDiv.innerHTML = `<svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}"><path d="${path}" fill="${binColor}" stroke="#3a3f4a" stroke-width="1"></path></svg>`;
+
+    binDiv.style.height = `${height}px`;
+
+    binDiv.addEventListener("click", () => selectBin(binDiv.id));
+
+    return binDiv;
+  }
+  function determineColor(
+    isHighlighted1,
+    isHighlighted2,
+    binColor,
+    highlightColor1,
+    highlightColor2
+  ) {
+    if (toggleHighlight) {
+      if (isHighlighted1) return highlightColor1;
+      else if (isHighlighted2) return highlightColor2;
+    } else {
+      if (isHighlighted2) return highlightColor2;
+      else if (isHighlighted1) return highlightColor1;
+    }
+    return binColor;
+  }
+
+  let rackConfig = getValue("Rack Config Text");
+
+  function parseShelfConfig(stringifiedRackConfig) {
+    let newRackConfig;
+    try {
+      newRackConfig = JSON.parse(stringifiedRackConfig);
+    } catch (error) {
+      console.error("Invalid or malformed rack configuration JSON.");
+      console.log(stringifiedRackConfig);
+      return [];
+    }
+
+    if (!Array.isArray(newRackConfig)) {
+      console.error("Rack configuration is not an array.");
+      return [];
+    }
+
+    let shelves = {};
+
+    newRackConfig.forEach((item) => {
+      shelves[item.Shelf] = shelves[item.Shelf] || [];
+
+      if (item.Type === "Bin") {
+        shelves[item.Shelf].push({
+          type: "bin",
+          size: item.Size,
+          binNumber: item["Bin Number"],
+        });
+      } else if (item.Type === "Gap") {
+        shelves[item.Shelf].push({
+          type: "gap",
+          size: item.Size,
+        });
+      }
+    });
+
+    return Object.keys(shelves).map((shelfNumber) => shelves[shelfNumber]);
+  }
+
+  shelfSchema = parseShelfConfig(rackConfig);
+  function tryBuildRack() {
+    let binDimensions = getValue("Bin Dimensions");
+    let rackConfig = getValue("Rack Config Text");
+
+    if (binDimensions && rackConfig) {
+      shelfSchema = parseShelfConfig(rackConfig);
+      buildRack();
+    } else {
+      setTimeout(tryBuildRack, 1000);
+    }
+  }
+
+  let resizeTimer;
+    window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+        if (shelfSchema && shelfSchema.length) {
+        buildRack();
+        }
+    }, 150);
+  });
+
+  tryBuildRack();
+  </script>
