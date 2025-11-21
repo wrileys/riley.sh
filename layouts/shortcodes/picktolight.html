@@ -32,11 +32,11 @@
 
   @media (max-width: 768px) {
     .ptl-demo {
-      padding: 16px; /* optional: a bit tighter on phones */
+      padding: 16px; 
     }
 
     .ptl-demo .wrap {
-      display: block;      /* <-- ignore grid on small screens */
+      display: block;
     }
 
     /* small margin between the two cards when stacked */
@@ -45,7 +45,10 @@
     }
   }
 
-
+  /* Allow grid items to shrink within their tracks */
+  .ptl-demo .wrap > .card {
+    min-width: 0;
+  }
 
   .ptl-demo .card {
     background: var(--ptl-card);
@@ -151,10 +154,10 @@
       <div class="row"><label>Update interval (ms)</label><input id="interval" type="number" value="1500" min="50" step="50"></div>
       <div class="row"><label>Highlight list 1</label><input id="h1" type="text" placeholder="e.g. 1,3,5"></div>
       <div class="row"><label>Highlight list 2</label><input id="h2" type="text" placeholder="e.g. 2,4"></div>
-      <div class="row"><label>Rack Config JSON</label><textarea id="rackJson"></textarea></div>
-      <div class="row"><label>Bin Dimensions JSON</label><textarea id="dimsJson"></textarea></div>
+      <div class="row"><label>Rack config json</label><textarea id="rackJson"></textarea></div>
+      <div class="row"><label>Bin dimensions json</label><textarea id="dimsJson"></textarea></div>
       <div class="row"><div></div><button id="rebuild">Rebuild rack</button></div>
-      <div class="row"><label>Selected Bin</label><input id="selectedBin" type="text" readonly></div>
+      <div class="row"><label>Selected bin</label><input id="selectedBin" type="text" readonly></div>
       <div class="row"><label>Events</label><div></div></div>
       <div class="log" id="log"></div>
     </div>
@@ -284,7 +287,7 @@
       $('rebuild')?.addEventListener('click', () => {
         const rj = $('rackJson')?.value ?? '';
         const dj = $('dimsJson')?.value ?? '';
-        try { JSON.parse(rj); } catch(e){ return alert('Rack Config JSON is invalid'); }
+        try { JSON.parse(rj); } catch(e){ return alert('Rack Config json is invalid'); }
         let dims;
         try { dims = JSON.parse(dj); } catch(e){ return alert('Bin Dimensions JSON is invalid'); }
         setValue('Rack Config Text', rj);
