@@ -5,7 +5,7 @@
     {{ partial "header.html" . }}
     <main class="container">{{ block "main" . }}{{ end }}</main>
     {{ partial "footer.html" . }}
-    {{ if .Site.Params.mermaid }}{{ partial "mermaid.html" . }}{{ end }}
+    {{ if .Page.Store.Get "hasMermaid" }}{{ partial "mermaid.html" . }}{{ end }}
     {{ partial "analytics.html" . }}
   </body>
 </html>

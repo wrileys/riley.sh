@@ -93,6 +93,54 @@ body{
   :root:not([data-theme]) { --code-bg: #0d1117; }
 }
 
+/* Mermaid blocks */
+.article pre.mermaid {
+  /* match your code blocks */
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+
+  /* default (light): blend with code background */
+  background: var(--code-bg);
+}
+
+/* Dark mode (system preference, when user hasn't chosen) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .article pre.mermaid {
+    background: #0b0f14; /* or var(--code-bg) if you want identical */
+  }
+
+  :root:not([data-theme]) .article pre.mermaid .section { opacity: 1 !important; }
+  :root:not([data-theme]) .article pre.mermaid .section0,
+  :root:not([data-theme]) .article pre.mermaid .section2 { fill: #0f1520 !important; }
+  :root:not([data-theme]) .article pre.mermaid .section1,
+  :root:not([data-theme]) .article pre.mermaid .section3 { fill: #0b0f14 !important; }
+
+  :root:not([data-theme]) .article pre.mermaid .titleText,
+  :root:not([data-theme]) .article pre.mermaid .sectionTitle,
+  :root:not([data-theme]) .article pre.mermaid .grid .tick text { fill: #e6edf3 !important; }
+
+  :root:not([data-theme]) .article pre.mermaid .grid .tick { stroke: #334155 !important; opacity: 1 !important; }
+}
+
+/* Dark mode (explicit toggle) */
+:root[data-theme="dark"] .article pre.mermaid {
+  background: #0b0f14;
+}
+:root[data-theme="dark"] .article pre.mermaid .section { opacity: 1 !important; }
+:root[data-theme="dark"] .article pre.mermaid .section0,
+:root[data-theme="dark"] .article pre.mermaid .section2 { fill: #0f1520 !important; }
+:root[data-theme="dark"] .article pre.mermaid .section1,
+:root[data-theme="dark"] .article pre.mermaid .section3 { fill: #0b0f14 !important; }
+
+:root[data-theme="dark"] .article pre.mermaid .titleText,
+:root[data-theme="dark"] .article pre.mermaid .sectionTitle,
+:root[data-theme="dark"] .article pre.mermaid .grid .tick text { fill: #e6edf3 !important; }
+
+:root[data-theme="dark"] .article pre.mermaid .grid .tick { stroke: #334155 !important; opacity: 1 !important; }
+
+
+
 /* Chroma themes */
 @import "chroma-light.css";                        /* base = light */
 
